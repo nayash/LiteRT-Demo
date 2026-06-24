@@ -1,0 +1,152 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "LiteRT-Demo: Install Debug APK",
+      "type": "shell",
+      "command": "./gradlew",
+      "args": [
+        "installDebug"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "LiteRT-Demo: Launch App",
+      "type": "shell",
+      "command": "adb",
+      "args": [
+        "shell",
+        "am",
+        "start",
+        "-n",
+        "com.outliers.liter_demo/.MainActivity"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "LiteRT-Demo: Grant Permissions",
+      "type": "shell",
+      "command": "adb shell pm grant com.outliers.liter_demo android.permission.READ_EXTERNAL_STORAGE",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "LiteRT-Demo: Install And Launch",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "LiteRT-Demo: Install Debug APK",
+        "LiteRT-Demo: Grant Permissions",
+        "LiteRT-Demo: Launch App"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "LiteRT-Demo: Logcat",
+      "type": "shell",
+      "command": "adb",
+      "args": [
+        "logcat"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "LiteRT-Demo: Logcat This App",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "PID=$(adb shell pidof -s com.outliers.liter_demo | tr -d '\\r'); if [ -z \"$PID\" ]; then echo \"App process not running. Launch the app first, then rerun this task.\"; exit 1; fi; echo \"Streaming logs for PID $PID (com.outliers.liter_demo)\"; exec adb logcat --pid=\"$PID\""
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "LiteRT-Demo: Logcat Errors Only",
+      "type": "shell",
+      "command": "adb",
+      "args": [
+        "logcat",
+        "*:E"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "LiteRT-Demo: Clear Logcat Buffer",
+      "type": "shell",
+      "command": "adb",
+      "args": [
+        "logcat",
+        "-c"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "LiteRT-Demo: Show Installed Packages",
+      "type": "shell",
+      "command": "adb",
+      "args": [
+        "shell",
+        "pm",
+        "list",
+        "packages"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "LiteRT-Demo: Build, Run, and Log",
+      "dependsOn": [
+        "LiteRT-Demo: Install Debug APK",
+        "LiteRT-Demo: Grant Permissions",
+        "LiteRT-Demo: Launch App",
+        "LiteRT-Demo: Logcat This App"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}
