@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
     id 'kotlin-kapt'
     id 'com.google.dagger.hilt.android'
 }
@@ -29,17 +30,14 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
     kotlinOptions {
-        jvmTarget = '17'
+        jvmTarget = '21'
     }
     buildFeatures {
         compose true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion '1.4.3'
     }
     packagingOptions {
         resources {
@@ -62,8 +60,8 @@ dependencies {
     implementation 'com.google.ai.edge.litertlm:litertlm-android:latest.release'
 
     // Hilt
-    implementation "com.google.dagger:hilt-android:2.44"
-    kapt "com.google.dagger:hilt-compiler:2.44"
+    implementation "com.google.dagger:hilt-android:2.59.2"
+    kapt "com.google.dagger:hilt-compiler:2.59.2"
     implementation 'androidx.hilt:hilt-navigation-compose:1.1.0'
 
     testImplementation 'junit:junit:4.13.2'
@@ -73,4 +71,8 @@ dependencies {
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
+}
+
+kotlin {
+    jvmToolchain(21)
 }
