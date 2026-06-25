@@ -22,7 +22,7 @@ class StockPriceTool : OpenApiTool {
         """.trimIndent()
     }
 
-    override fun execute(jsonArguments: String): String {
+    override fun execute(paramsJsonString: String): String {
         // This is called in Automatic mode
         return """{"price": "$150.00", "currency": "USD"}"""
     }

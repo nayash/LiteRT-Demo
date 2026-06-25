@@ -4,8 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.ai.edge.litertlm.Conversation
 import com.google.ai.edge.litertlm.ConversationConfig
+import com.google.ai.edge.litertlm.Content
+import com.google.ai.edge.litertlm.Contents
 import com.google.ai.edge.litertlm.Engine
 import com.google.ai.edge.litertlm.EngineConfig
+import com.google.ai.edge.litertlm.Message as LiteRtMessage
+import com.google.ai.edge.litertlm.tool
+import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +49,7 @@ class ChatViewModel @Inject constructor() : ViewModel() {
 
     private var engine: Engine? = null
     private var conversation: Conversation? = null
+    private val gson = Gson()
 
     fun setAutomaticToolCalling(enabled: Boolean) {
         _uiState.update { it.copy(isAutomaticToolCalling = enabled) }
@@ -74,7 +80,7 @@ class ChatViewModel @Inject constructor() : ViewModel() {
     private fun createConversation() {
         conversation?.close()
         val config = ConversationConfig(
-            tools = listOf(StockPriceTool()),
+            tools = listOf(tool(StockPriceTool())),
             automaticToolCalling = _uiState.value.isAutomaticToolCalling
         )
         conversation = engine?.createConversation(config)
@@ -86,13 +92,12 @@ class ChatViewModel @Inject constructor() : ViewModel() {
 
         viewModelScope.launch {
             try {
-                val litertMessage = com.google.ai.edge.litertlm.Message.of(text)
+                val litertMessage = LiteRtMessage.user(text)
                 var fullResponse = ""
 
                 conversation?.sendMessageAsync(litertMessage)?.collect { response ->
-                    // Handle text response
-                    val responseText = response.text
-                    if (!responseText.isNullOrEmpty()) {
+                    val responseText = response.toString()
+                    if (responseText.isNotEmpty()) {
                         fullResponse += responseText
                         updateLastModelMessage(fullResponse)
                     }
@@ -101,7 +106,10 @@ class ChatViewModel @Inject constructor() : ViewModel() {
                     if (!_uiState.value.isAutomaticToolCalling && response.toolCalls.isNotEmpty()) {
                         val call = response.toolCalls.first()
                         _uiState.update { it.copy(
-                            pendingToolCall = ToolCallState(call.name, call.arguments),
+                            pendingToolCall = ToolCallState(
+                                name = call.name,
+                                arguments = gson.toJson(call.arguments)
+                            ),
                             isThinking = false
                         ) }
                     }
@@ -118,21 +126,15 @@ class ChatViewModel @Inject constructor() : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isThinking = true, pendingToolCall = null) }
             try {
-                // Execute mock tool
                 val result = StockPriceTool().execute(pending.arguments)
-
-                // Send result back to model.
-                // Using Message.of with role TOOL if supported, or structured content.
-                // Based on standard LLM patterns, we send a message with the tool result.
-                val resultMessage = com.google.ai.edge.litertlm.Message.of(
-                    result,
-                    // role = com.google.ai.edge.litertlm.Role.TOOL
+                val resultMessage = LiteRtMessage.tool(
+                    Contents.of(Content.ToolResponse(pending.name, result))
                 )
 
                 var fullResponse = ""
                 conversation?.sendMessageAsync(resultMessage)?.collect { response ->
-                    val responseText = response.text
-                    if (!responseText.isNullOrEmpty()) {
+                    val responseText = response.toString()
+                    if (responseText.isNotEmpty()) {
                         fullResponse += responseText
                         updateLastModelMessage(fullResponse)
                     }
